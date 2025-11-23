@@ -1,0 +1,60 @@
+name: Rainyun 自动签到
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # UTC+8 12点执行
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  sign-in:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: 缓存Python依赖
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
+      
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # 移除Chrome浏览器缓存，因为缓存系统目录可能导致权限问题
+      # 使用webdriver-manager自动管理ChromeDriver，无需缓存
+      
+      - name: 安装Chrome和ChromeDriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable curl unzip
+          # 使用webdriver-manager自动管理ChromeDriver版本
+          pip install webdriver-manager chromedriver-binary-auto
+      
+      - name: 确保temp目录存在
+        run: mkdir -p temp
+      
+      - name: 执行签到脚本
+        run: python rainyun.py
+        env:
+          # 请在GitHub仓库的Settings > Secrets and variables > Actions中设置这些密钥
+          RAINYUN_USER: ${{ secrets.RAINYUN_USER }}
+          RAINYUN_PASS: ${{ secrets.RAINYUN_PASS }}
+          # 设置无头模式环境变量
+          HEADLESS: "true"
+          # 启用调试日志
+          DEBUG: "false"
+          # 确保使用系统路径中的ChromeDriver
+          CHROMEDRIVER_PATH: "chromedriver"
+      
+      - name: 清理临时文件
+        run: rm -rf temp
+        if: always()  # 即使前面步骤失败也执行清理
