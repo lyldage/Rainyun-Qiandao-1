@@ -46,8 +46,8 @@ jobs:
         run: python rainyun.py
         env:
           # 请在GitHub仓库的Settings > Secrets and variables > Actions中设置这些密钥
-          RAINYUN_USER: ${{ secrets.RAINYUN_USER }}
-          RAINYUN_PASS: ${{ secrets.RAINYUN_PASS }}
+          RAINYUN_USER: ${{ secrets.RAINYUNUSER }}
+          RAINYUN_PASS: ${{ secrets.RAINYUNPASSWD }}
           # 设置无头模式环境变量
           HEADLESS: "true"
           # 启用调试日志
